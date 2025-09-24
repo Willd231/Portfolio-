@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Sitemap: https://willdellinger.dev/sitemap.xml
+# If you want to block crawlers from specific paths, add Disallow rules below
