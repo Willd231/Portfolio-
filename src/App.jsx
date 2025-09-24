@@ -37,15 +37,14 @@ function RippleButton({ children, className = '', onClick, as = 'button', href, 
   )
 }
 
-function HeaderNav({ onNav }) {
+function HeaderNav({ onNav, onOpenContact }) {
   return (
     <header className="site-header">
       <div className="brand">Will D.</div>
       <nav className="nav">
         <RippleButton className="nav-btn" onClick={() => onNav('projects')}>Projects</RippleButton>
         <RippleButton className="nav-btn" onClick={() => onNav('experience')}>Experience</RippleButton>
-        <RippleButton className="nav-btn" onClick={() => onNav('contact')}>Contact</RippleButton>
-        <a className="buy-coffee" href="https://buymeacoffee.com/dellingerwf" target="_blank" rel="noopener noreferrer">☕️ Buy me a coffee</a>
+        <RippleButton className="nav-btn" onClick={() => onOpenContact()}>Contact</RippleButton>
       </nav>
     </header>
   )
@@ -58,7 +57,7 @@ function Hero({ onNav }) {
         <img className="hero-photo" src={im1} alt="Will waving" />
         <div className="hero-copy">
           <h1>Will Dellinger</h1>
-          <p className="lead">Low-level systems, delightful web experiences, and an aspiring mobile app developer. Previously at FSI.</p>
+          <p className="lead">Low-level systems and delightful web experiences. Previously at FSI.</p>
           <div className="hero-ctas">
             <RippleButton className="primary" onClick={() => onNav('projects')}>See Projects</RippleButton>
             <RippleButton className="outline" onClick={() => onNav('contact')}>Hire Me</RippleButton>
@@ -96,7 +95,7 @@ function About() {
               <li>Mobile: Flutter (aspiring)</li>
               <li>Tools: Git, CI, observability</li>
             </ul>
-            {/* Buy me a coffee removed from Skills */}
+              {/* Buy me a coffee removed */}
           </div>
         </div>
       </div>
@@ -166,23 +165,12 @@ function Experience() {
   )
 }
 
-function MobileShowcase() {
-  return (
-    <section className="mobile" id="mobile">
-      <div className="container">
-        <h2>Aspiring Mobile App Developer</h2>
-        <p>Building cross-platform prototypes with Flutter. Focused on UX, offline-first sync, and performant animations.</p>
-        <div className="mock-phones">
-          <div className="phone mock-1">App preview</div>
-          <div className="phone mock-2">App preview</div>
-        </div>
-      </div>
-    </section>
-  )
-}
+// MobileShowcase removed per user request
 
-function Contact() {
+function ContactModal({ isOpen, onClose }) {
   const [sent, setSent] = useState(false)
+  if (!isOpen) return null
+
   const handleSubmit = e => {
     e.preventDefault()
     const form = e.target
@@ -191,19 +179,20 @@ function Contact() {
     const message = encodeURIComponent(form.message.value || '')
     const subject = encodeURIComponent(`Portfolio contact from ${name || email}`)
     const body = encodeURIComponent(`Name: ${name}\nEmail: ${email}\n\n${message}`)
-    // open default mail client
     window.location.href = `mailto:dellinger.w3@gmail.com?subject=${subject}&body=${body}`
     setSent(true)
+    setTimeout(() => onClose(), 500)
   }
 
   return (
-    <section className="contact" id="contact">
-      <div className="container contact-inner">
-        <h2>Contact</h2>
+    <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true">
+      <div className="modal-card" onClick={e => e.stopPropagation()}>
+        <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
+        <h3>Contact</h3>
         {sent ? (
           <div className="card">Thanks — I’ll get back to you soon.</div>
         ) : (
-          <form className="card contact-form" onSubmit={handleSubmit}>
+          <form className="contact-form" onSubmit={handleSubmit}>
             <label>
               Name
               <input required name="name" />
@@ -222,7 +211,7 @@ function Contact() {
           </form>
         )}
       </div>
-    </section>
+    </div>
   )
 }
 
@@ -237,21 +226,34 @@ function ProjectsPage() {
 export default function App() {
   const scrollTo = id => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
 
-  const handleNav = id => scrollTo(id)
+  const [contactOpen, setContactOpen] = useState(false)
+
+  const handleNav = id => {
+    if (id === 'contact') setContactOpen(true)
+    else scrollTo(id)
+  }
+
+  const openContact = () => setContactOpen(true)
+  const closeContact = () => setContactOpen(false)
 
   return (
     <Router>
       <div className="app-root">
-        <HeaderNav onNav={handleNav} />
+        <HeaderNav onNav={handleNav} onOpenContact={openContact} />
         <Routes>
           <Route path="/" element={<>
             <Hero onNav={handleNav} />
             <About />
             <Projects />
             <Experience />
-            <MobileShowcase />
-            <Contact />
-            <footer className="site-footer">© 2025 William Dellinger</footer>
+            <ContactModal isOpen={contactOpen} onClose={closeContact} />
+            <footer className="site-footer">© 2025 William Dellinger
+              <div className="socials">
+                <a href="https://github.com/Willd231" target="_blank" rel="noopener noreferrer">GitHub</a>
+                <a href="https://linkedin.com/in/Willd231" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+                <a href="https://joinhandshake.com" target="_blank" rel="noopener noreferrer">Handshake</a>
+              </div>
+            </footer>
           </>} />
           <Route path="/projects" element={<ProjectsPage />} />
         </Routes>
